@@ -163,25 +163,34 @@ app.get("/todos/:todoId/", checkAll, async (req, res) => {
 //api 3
 app.get("/agenda/", checkAll, async (req, res) => {
   let { date } = req.query;
-  const result = format(new Date(date), "yyyy/MM/dd");
-  let query = `SELECT * FROM todo WHERE due_date = '${date}';`;
-  let todoList = await db.all(query);
-  let newTodoList = [];
-  for (let i of todoList) {
-    let temp = snakeToCamel(i);
-    newTodoList.push(temp);
+  if (date === undefined) {
+    res.status(400);
+    res.send("Invalid Due Date");
+  } else {
+    const isDateValid = isValid(new Date(date));
+    if (isDateValid) {
+      const result = format(new Date(date), "yyyy-MM-dd");
+      let query = `SELECT * FROM todo WHERE due_date = '${result}';`;
+      let todoList = await db.all(query);
+      let newTodoList = [];
+      for (let i of todoList) {
+        let temp = snakeToCamel(i);
+        newTodoList.push(temp);
+      }
+      res.send(newTodoList);
+    } else {
+      res.status(400);
+      res.send("Invalid Due Date");
+    }
   }
-  res.send(newTodoList);
 });
 
 //api 4
 app.post("/todos/", checkAllBody, async (req, res) => {
   let { id, todo, priority, status, category, dueDate } = req.body;
+  const formattedDate = format(new Date(dueDate), "yyyy-MM-dd");
   let query = `INSERT INTO todo ( id, todo, priority, status, category, due_date)
-        VALUES( ${id}, '${todo}', '${priority}', '${status}', '${category}', '${format(
-    new Date(dueDate),
-    "yyyy/MM/dd"
-  )}');`;
+        VALUES( ${id}, '${todo}', '${priority}', '${status}', '${category}', '${formattedDate}');`;
   await db.run(query);
   res.send("Todo Successfully Added");
 });
@@ -219,7 +228,7 @@ app.put("/todos/:todoId/", checkAllBody, async (req, res) => {
     await db.run(query);
     res.send("Category Updated");
   } else if (dueDate !== undefined) {
-    const result = format(new Date(dueDate), "MM/dd/yyyy");
+    const result = format(new Date(dueDate), "yyyy-MM-dd");
     let query = `UPDATE todo
         SET due_date = '${result}'
         WHERE
