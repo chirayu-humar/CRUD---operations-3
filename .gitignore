@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+.results
+.tests
+.vscode
+=======
 # Logs
 logs
 *.log
@@ -123,3 +128,4 @@ pnpm-debug.log
 .theia
 
 .results
+>>>>>>> 944e3f9825879e415fae5ca89672e3eba0935ffb
